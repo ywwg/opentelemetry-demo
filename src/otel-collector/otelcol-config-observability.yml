@@ -43,6 +43,27 @@ exporters:
     tls:
       insecure: true
 
+connectors:
+  # Tees the post-processing metrics stream into the delta-validation branch below.
+  forward/delta_compare:
+
+processors:
+  # Delta-vs-cumulative validation branch: keep only the target metric, convert its
+  # delta points to cumulative, and rename so it lands beside the delta original in
+  # Prometheus for cross-checking. See metrics/delta_compare pipeline below.
+  filter/delta_compare:
+    error_mode: ignore
+    metrics:
+      metric:
+        - 'name != "kafka.consumer.request_total"'
+  deltatocumulative:
+  transform/delta_compare:
+    error_mode: ignore
+    metric_statements:
+      - context: metric
+        statements:
+          - set(name, Concat([name, "_cumulative"], ""))
+
 extensions:
   opamp:
     server:
@@ -67,6 +88,11 @@ service:
     traces:
       exporters: [debug, otlp_grpc/jaeger, span_metrics]
     metrics:
+      exporters: [debug, otlp_http/prometheus, forward/delta_compare]
+    metrics/delta_compare:
+      receivers: [forward/delta_compare]
+      processors:
+        [filter/delta_compare, deltatocumulative, transform/delta_compare]
       exporters: [debug, otlp_http/prometheus]
     logs:
       exporters: [debug, opensearch]
