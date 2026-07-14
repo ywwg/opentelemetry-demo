@@ -58,3 +58,6 @@ src/frontend/cypress/screenshots
 src/shipping/target/
 
 !src/currency/build
+
+# GSD planning docs (local-only for this vendored repo)
+.planning/

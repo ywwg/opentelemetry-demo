@@ -76,6 +76,7 @@ services:
       - --enable-feature=exemplar-storage
       - --enable-feature=st-storage
       - --enable-feature=xor2-encoding
+      - --enable-feature=otlp-native-delta-ingestion
     volumes:
       - ./src/prometheus/prometheus-config.yaml:/etc/prometheus/prometheus-config.yaml
     deploy:
